@@ -22,12 +22,14 @@ function runningState()
     state = states.running
     love.draw = runningDraw
     love.update = runningUpdate
+    love.keypressed = runningKeypressed
 end
 
 function gameoverState()
     state = states.gameover
     love.draw = gameoverDraw
     love.update = gameoverUpdate
+    love.keypressed = gameoverKeypressed
 end
 
 function runningDraw()
@@ -112,16 +114,20 @@ end
 function gameoverUpdate(dt)
 end
 
-function love.keypressed(key)
-    if key == "left" and state == states.running then
+function runningKeypressed(key)
+    if key == "left" then
         left, right, up, down = true, false, false, false
-    elseif key == "right" and state == states.running then
+    elseif key == "right" then
         left, right, up, down = false, true, false, false
-    elseif key == "up" and state == states.running then
+    elseif key == "up" then
         left, right, up, down = false, false, true, false
-    elseif key == "down" and state == states.running then
+    elseif key == "down" then
         left, right, up, down = false, false, false, true
-    elseif key == "space" and state == states.gameover then
+    end
+end
+
+function gameoverKeypressed(key)
+    if key == "space" then
         start()
     end
 end
