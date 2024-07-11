@@ -20,13 +20,15 @@ end
 
 function runningState()
     state = states.running
+    love.draw = runningDraw
 end
 
 function gameoverState()
     state = states.gameover
+    love.draw = gameoverDraw
 end
 
-function love.draw()
+function runningDraw()
     --draw the snake's head rounded rectangle with size (width and height also equals unit)
     love.graphics.setColor(0, 0.8, 0)
     love.graphics.rectangle("fill", head[1] * unit, head[2] * unit, unit, unit, 5, 5)
@@ -40,13 +42,14 @@ function love.draw()
     --draw the apple rounded rectangle just like head and tail
     love.graphics.setColor(0.8, 0, 0)
     love.graphics.rectangle("fill", apple[1] * unit, apple[2] * unit, unit, unit, 5, 5)
+end
 
-    if state == states.gameover then
-        --draw the game over screen
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.setNewFont(20)
-        love.graphics.printf("GAME OVER\nPress [SPACE] for a new game", 0, height * 10 / 2 - 50, width * 10, "center")
-    end
+function gameoverDraw()
+    runningDraw()
+    --draw the game over screen
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setNewFont(20)
+    love.graphics.printf("GAME OVER\nPress [SPACE] for a new game", 0, height * 10 / 2 - 50, width * 10, "center")
 end
 
 function love.update(dt)
