@@ -1,15 +1,15 @@
 --game states
-local states = { running = 'running', gameover = 'game over' }
+states = { running = 'running', gameover = 'game over' }
 --tables for the snake and food
-local head = {}
-local tail = {}
-local apple = {}
+head = {}
+tail = {}
+apple = {}
 --directions 
-local left, right, up, down = false, false, false, false
-local dirX, dirY = 0,0
+left, right, up, down = false, false, false, false
+dirX, dirY = 0,0
 
-local speed = 0
-local timer = 0
+speed = 0
+timer = 0
 
 function love.load()
     -- initialize random number generator
