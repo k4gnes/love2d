@@ -1,16 +1,3 @@
---game states
-states = { running = 'running', gameover = 'game over' }
---tables for the snake and food
-head = {}
-tail = {}
-apple = {}
---directions 
-left, right, up, down = false, false, false, false
-dirX, dirY = 0,0
-
-speed = 0
-timer = 0
-
 function love.load()
     -- initialize random number generator
     math.randomseed(os.time())
@@ -19,14 +6,12 @@ function love.load()
 end
 
 function runningState()
-    state = states.running
     love.draw = runningDraw
     love.update = runningUpdate
     love.keypressed = runningKeypressed
 end
 
 function gameoverState()
-    state = states.gameover
     love.draw = gameoverDraw
     love.update = gameoverUpdate
     love.keypressed = gameoverKeypressed
