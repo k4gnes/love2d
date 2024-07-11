@@ -21,11 +21,13 @@ end
 function runningState()
     state = states.running
     love.draw = runningDraw
+    love.update = runningUpdate
 end
 
 function gameoverState()
     state = states.gameover
     love.draw = gameoverDraw
+    love.update = gameoverUpdate
 end
 
 function runningDraw()
@@ -52,61 +54,62 @@ function gameoverDraw()
     love.graphics.printf("GAME OVER\nPress [SPACE] for a new game", 0, height * 10 / 2 - 50, width * 10, "center")
 end
 
-function love.update(dt)
-    if state == states.running then
-        --time limit for speed of snake
-        timer = timer + dt
-        if timer >= speed then
-            --set direction of the snake change its direction back only if has no tail
-            if up and (dirY == 0 or #tail == 0) then
-                dirX, dirY = 0, -1
-            elseif down and (dirY == 0 or #tail == 0) then
-                dirX, dirY = 0, 1
-            elseif left and (dirX == 0 or #tail == 0) then
-                dirX, dirY = -1, 0
-            elseif right and (dirX == 0 or #tail == 0) then
-                dirX, dirY = 1, 0
-            end
+function runningUpdate(dt)
+    --time limit for speed of snake
+    timer = timer + dt
+    if timer >= speed then
+        --set direction of the snake change its direction back only if has no tail
+        if up and (dirY == 0 or #tail == 0) then
+            dirX, dirY = 0, -1
+        elseif down and (dirY == 0 or #tail == 0) then
+            dirX, dirY = 0, 1
+        elseif left and (dirX == 0 or #tail == 0) then
+            dirX, dirY = -1, 0
+        elseif right and (dirX == 0 or #tail == 0) then
+            dirX, dirY = 1, 0
+        end
 
-            -- Movement
-            --moving the snake's head
-            head[1] = head[1] + dirX
-            head[2] = head[2] + dirY
+        -- Movement
+        --moving the snake's head
+        head[1] = head[1] + dirX
+        head[2] = head[2] + dirY
 
-            --check food
-            if head[1] == apple[1] and head[2] == apple[2] then
-                --add food and increase the snake
-                apple = getfreepos()
-                table.insert(tail, { head[1] - dirX, head[2] - dirY })
-            end
+        --check food
+        if head[1] == apple[1] and head[2] == apple[2] then
+            --add food and increase the snake
+            apple = getfreepos()
+            table.insert(tail, { head[1] - dirX, head[2] - dirY })
+        end
 
-            --set snake tail parts
-            --from tail end to second
-            for i = #tail, 2, -1 do
-                tail[i] = tail[i - 1]
-            end
-            --first tail part behind the head
-            if #tail > 0 then
-                tail[1] = { head[1] - dirX, head[2] - dirY }
-            end
+        --set snake tail parts
+        --from tail end to second
+        for i = #tail, 2, -1 do
+            tail[i] = tail[i - 1]
+        end
+        --first tail part behind the head
+        if #tail > 0 then
+            tail[1] = { head[1] - dirX, head[2] - dirY }
+        end
 
-            --check if game is over
-            --because snake's head is out of the screen
-            if head[1] < 0 or head[2] < 0 or head[1] > width - 1 or head[2] > height - 1 then
+        --check if game is over
+        --because snake's head is out of the screen
+        if head[1] < 0 or head[2] < 0 or head[1] > width - 1 or head[2] > height - 1 then
+            --game is over
+            gameoverState()
+        end
+
+        --because snake's head is in the tail
+        for i, v in ipairs(tail) do
+            if head[1] == v[1] and head[2] == v[2] and i ~= 1 then
                 --game is over
                 gameoverState()
             end
-
-            --because snake's head is in the tail
-            for i, v in ipairs(tail) do
-                if head[1] == v[1] and head[2] == v[2] and i ~= 1 then
-                    --game is over
-                    gameoverState()
-                end
-            end
-            timer = 0
         end
+        timer = 0
     end
+end
+
+function gameoverUpdate(dt)
 end
 
 function love.keypressed(key)
