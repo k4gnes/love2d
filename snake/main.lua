@@ -18,6 +18,14 @@ function love.load()
     start()
 end
 
+function runningState()
+    state = states.running
+end
+
+function gameoverState()
+    state = states.gameover
+end
+
 function love.draw()
     --draw the snake's head rounded rectangle with size (width and height also equals unit)
     love.graphics.setColor(0, 0.8, 0)
@@ -83,14 +91,14 @@ function love.update(dt)
             --because snake's head is out of the screen
             if head[1] < 0 or head[2] < 0 or head[1] > width - 1 or head[2] > height - 1 then
                 --game is over
-                state = states.gameover
+                gameoverState()
             end
 
             --because snake's head is in the tail
             for i, v in ipairs(tail) do
                 if head[1] == v[1] and head[2] == v[2] and i ~= 1 then
                     --game is over
-                    state = states.gameover
+                    gameoverState()
                 end
             end
             timer = 0
@@ -113,7 +121,7 @@ function love.keypressed(key)
 end
 
 function start()
-    state = states.running
+    runningState()
     --directions from the keypressed event default is up
     left, right, up, down = false, false, true, false
     dirX = 0
