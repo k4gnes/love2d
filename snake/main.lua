@@ -99,15 +99,27 @@ end
 function gameoverUpdate(dt)
 end
 
-function runningKeypressed(key)
-    if key == "left" then
-        left, right, up, down = true, false, false, false
-    elseif key == "right" then
+heading = {}
+
+function heading.left()
+    left, right, up, down = true, false, false, false
+end
+
+function heading.right()
         left, right, up, down = false, true, false, false
-    elseif key == "up" then
+end
+
+function heading.up()
         left, right, up, down = false, false, true, false
-    elseif key == "down" then
+end
+
+function heading.down()
         left, right, up, down = false, false, false, true
+end
+
+function runningKeypressed(key)
+    if heading[key] then
+        heading[key]()
     end
 end
 
