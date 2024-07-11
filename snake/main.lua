@@ -5,13 +5,13 @@ function love.load()
     start()
 end
 
-function runningState()
+function running()
     love.draw = runningDraw
     love.update = runningUpdate
     love.keypressed = runningKeypressed
 end
 
-function gameoverState()
+function gameover()
     love.draw = gameoverDraw
     love.update = gameoverUpdate
     love.keypressed = gameoverKeypressed
@@ -84,14 +84,14 @@ function runningUpdate(dt)
     --because snake's head is out of the screen
     if head[1] < 0 or head[2] < 0 or head[1] > width - 1 or head[2] > height - 1 then
         --game is over
-        gameoverState()
+        gameover()
     end
 
     --because snake's head is in the tail
     for i, v in ipairs(tail) do
         if head[1] == v[1] and head[2] == v[2] and i ~= 1 then
             --game is over
-            gameoverState()
+            gameover()
         end
     end
     timer = 0
@@ -131,7 +131,7 @@ function gameoverKeypressed(key)
 end
 
 function start()
-    runningState()
+    running()
     --directions from the keypressed event default is up
     left, right, up, down = false, false, true, false
     dirX = 0
