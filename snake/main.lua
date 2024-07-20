@@ -1,16 +1,3 @@
---game states
-local states = { running = 'running', gameover = 'game over' }
---tables for the snake and food
-local head = {}
-local tail = {}
-local apple = {}
---directions 
-local left, right, up, down = false, false, false, false
-local dirX, dirY = 0,0
-
-local speed = 0
-local timer = 0
-
 function love.load()
     -- initialize random number generator
     math.randomseed(os.time())
@@ -18,7 +5,19 @@ function love.load()
     start()
 end
 
-function love.draw()
+function running()
+    love.draw = runningDraw
+    love.update = runningUpdate
+    love.keypressed = runningKeypressed
+end
+
+function gameover()
+    love.draw = gameoverDraw
+    love.update = gameoverUpdate
+    love.keypressed = gameoverKeypressed
+end
+
+function runningDraw()
     --draw the snake's head rounded rectangle with size (width and height also equals unit)
     love.graphics.setColor(0, 0.8, 0)
     love.graphics.rectangle("fill", head[1] * unit, head[2] * unit, unit, unit, 5, 5)
@@ -32,88 +31,107 @@ function love.draw()
     --draw the apple rounded rectangle just like head and tail
     love.graphics.setColor(0.8, 0, 0)
     love.graphics.rectangle("fill", apple[1] * unit, apple[2] * unit, unit, unit, 5, 5)
-
-    if state == states.gameover then
-        --draw the game over screen
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.setNewFont(20)
-        love.graphics.printf("GAME OVER\nPress [SPACE] for a new game", 0, height * 10 / 2 - 50, width * 10, "center")
-    end
 end
 
-function love.update(dt)
-    if state == states.running then
-        --time limit for speed of snake
-        timer = timer + dt
-        if timer >= speed then
-            --set direction of the snake change its direction back only if has no tail
-            if up and (dirY == 0 or #tail == 0) then
-                dirX, dirY = 0, -1
-            elseif down and (dirY == 0 or #tail == 0) then
-                dirX, dirY = 0, 1
-            elseif left and (dirX == 0 or #tail == 0) then
-                dirX, dirY = -1, 0
-            elseif right and (dirX == 0 or #tail == 0) then
-                dirX, dirY = 1, 0
-            end
+function gameoverDraw()
+    runningDraw()
+    --draw the game over screen
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setNewFont(20)
+    love.graphics.printf("GAME OVER\nPress [SPACE] for a new game", 0, height * 10 / 2 - 50, width * 10, "center")
+end
 
-            -- Movement
-            --moving the snake's head
-            head[1] = head[1] + dirX
-            head[2] = head[2] + dirY
+function runningUpdate(dt)
+    --time limit for speed of snake
+    timer = timer + dt
+    if timer < speed then
+        return
+    end
+    --set direction of the snake change its direction back only if has no tail
+    if up and (dirY == 0 or #tail == 0) then
+        dirX, dirY = 0, -1
+    elseif down and (dirY == 0 or #tail == 0) then
+        dirX, dirY = 0, 1
+    elseif left and (dirX == 0 or #tail == 0) then
+        dirX, dirY = -1, 0
+    elseif right and (dirX == 0 or #tail == 0) then
+        dirX, dirY = 1, 0
+    end
 
-            --check food
-            if head[1] == apple[1] and head[2] == apple[2] then
-                --add food and increase the snake
-                apple = getfreepos()
-                table.insert(tail, { head[1] - dirX, head[2] - dirY })
-            end
+    -- Movement
+    --moving the snake's head
+    head[1] = head[1] + dirX
+    head[2] = head[2] + dirY
 
-            --set snake tail parts
-            --from tail end to second
-            for i = #tail, 2, -1 do
-                tail[i] = tail[i - 1]
-            end
-            --first tail part behind the head
-            if #tail > 0 then
-                tail[1] = { head[1] - dirX, head[2] - dirY }
-            end
+    --check food
+    if head[1] == apple[1] and head[2] == apple[2] then
+        --add food and increase the snake
+        apple = getfreepos()
+        table.insert(tail, { head[1] - dirX, head[2] - dirY })
+    end
 
-            --check if game is over
-            --because snake's head is out of the screen
-            if head[1] < 0 or head[2] < 0 or head[1] > width - 1 or head[2] > height - 1 then
-                --game is over
-                state = states.gameover
-            end
+    --set snake tail parts
+    --from tail end to second
+    for i = #tail, 2, -1 do
+        tail[i] = tail[i - 1]
+    end
+    --first tail part behind the head
+    if #tail > 0 then
+        tail[1] = { head[1] - dirX, head[2] - dirY }
+    end
 
-            --because snake's head is in the tail
-            for i, v in ipairs(tail) do
-                if head[1] == v[1] and head[2] == v[2] and i ~= 1 then
-                    --game is over
-                    state = states.gameover
-                end
-            end
-            timer = 0
+    --check if game is over
+    --because snake's head is out of the screen
+    if head[1] < 0 or head[2] < 0 or head[1] > width - 1 or head[2] > height - 1 then
+        --game is over
+        gameover()
+    end
+
+    --because snake's head is in the tail
+    for i, v in ipairs(tail) do
+        if head[1] == v[1] and head[2] == v[2] and i ~= 1 then
+            --game is over
+            gameover()
         end
     end
+    timer = 0
 end
 
-function love.keypressed(key)
-    if key == "left" and state == states.running then
-        left, right, up, down = true, false, false, false
-    elseif key == "right" and state == states.running then
+function gameoverUpdate(dt)
+end
+
+heading = {}
+
+function heading.left()
+    left, right, up, down = true, false, false, false
+end
+
+function heading.right()
         left, right, up, down = false, true, false, false
-    elseif key == "up" and state == states.running then
+end
+
+function heading.up()
         left, right, up, down = false, false, true, false
-    elseif key == "down" and state == states.running then
+end
+
+function heading.down()
         left, right, up, down = false, false, false, true
-    elseif key == "space" and state == states.gameover then
+end
+
+function runningKeypressed(key)
+    if heading[key] then
+        heading[key]()
+    end
+end
+
+function gameoverKeypressed(key)
+    if key == "space" then
         start()
     end
 end
 
 function start()
-    state = states.running
+    running()
     --directions from the keypressed event default is up
     left, right, up, down = false, false, true, false
     dirX = 0
