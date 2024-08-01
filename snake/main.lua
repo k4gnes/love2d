@@ -153,8 +153,7 @@ function start()
     --table for the snake's tail
     tail = {}
     --set speed and timer
-    -- speed = 0.25
-    speed = 0.125
+    speed = 0.25
     timer = 0
     --table for the apple
     apple = get_free_position()
