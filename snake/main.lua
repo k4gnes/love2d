@@ -87,7 +87,6 @@ function runningUpdate(dt)
     --check if game is over
     --because snake's head is out of the screen
     if head.x < 0 or head.y < 0 or head.x > width - 1 or head.y > height - 1 then
-        print("out of screen")
         --game is over
         gameover()
     end
@@ -96,7 +95,6 @@ function runningUpdate(dt)
     for _, tail_part in pairs(tail) do
         if head.x == tail_part.x and head.y == tail_part.y then
             --game is over
-            print("tail ")
             gameover()
         end
     end
