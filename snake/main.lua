@@ -174,5 +174,5 @@ function get_free_position()
             end
         end
     until not conflict
-    return { x=x, y=y }
+    return { x = x, y = y }
 end
