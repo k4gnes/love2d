@@ -17,20 +17,35 @@ function gameover()
     love.keypressed = gameoverKeypressed
 end
 
+direction = {
+    up = function()
+        head.y = head.y - 1
+    end,
+    down = function()
+        head.y = head.y + 1
+    end,
+    left = function()
+        head.x = head.x - 1
+    end,
+    right = function()
+        head.x = head.x + 1
+    end
+}
+
 function runningDraw()
     --draw the snake's head rounded rectangle with size (width and height also equals unit)
     love.graphics.setColor(0, 0.8, 0)
-    love.graphics.rectangle("fill", head[1] * unit, head[2] * unit, unit, unit, 5, 5)
+    love.graphics.rectangle("fill", head.x * unit, head.y * unit, unit, unit, 5, 5)
 
     --draw the tail rounded rectangle (like head)
     love.graphics.setColor(0, 0.8, 0)
-    for _, v in ipairs(tail) do
-        love.graphics.rectangle("fill", v[1] * unit, v[2] * unit, unit, unit, 5, 5);
+    for _, tail_part in pairs(tail) do
+        love.graphics.rectangle("fill", tail_part.x * unit, tail_part.y * unit, unit, unit, 5, 5);
     end
 
     --draw the apple rounded rectangle just like head and tail
     love.graphics.setColor(0.8, 0, 0)
-    love.graphics.rectangle("fill", apple[1] * unit, apple[2] * unit, unit, unit, 5, 5)
+    love.graphics.rectangle("fill", apple.x * unit, apple.y * unit, unit, unit, 5, 5)
 end
 
 function gameoverDraw()
@@ -47,50 +62,41 @@ function runningUpdate(dt)
     if timer < speed then
         return
     end
-    --set direction of the snake change its direction back only if has no tail
-    if up and (dirY == 0 or #tail == 0) then
-        dirX, dirY = 0, -1
-    elseif down and (dirY == 0 or #tail == 0) then
-        dirX, dirY = 0, 1
-    elseif left and (dirX == 0 or #tail == 0) then
-        dirX, dirY = -1, 0
-    elseif right and (dirX == 0 or #tail == 0) then
-        dirX, dirY = 1, 0
-    end
 
-    -- Movement
-    --moving the snake's head
-    head[1] = head[1] + dirX
-    head[2] = head[2] + dirY
+    local last_head_position = { x = head.x, y = head.y }
+
+    move()
 
     --check food
-    if head[1] == apple[1] and head[2] == apple[2] then
+    if head.x == apple.x and head.y == apple.y then
         --add food and increase the snake
-        apple = getfreepos()
-        table.insert(tail, { head[1] - dirX, head[2] - dirY })
+        apple = get_free_position()
+        table.insert(tail, {  })
     end
 
     --set snake tail parts
     --from tail end to second
-    for i = #tail, 2, -1 do
-        tail[i] = tail[i - 1]
+    for tail_pos = #tail, 2, -1 do
+        tail[tail_pos] = tail[tail_pos - 1]
     end
-    --first tail part behind the head
+
     if #tail > 0 then
-        tail[1] = { head[1] - dirX, head[2] - dirY }
+        tail[1] = last_head_position
     end
 
     --check if game is over
     --because snake's head is out of the screen
-    if head[1] < 0 or head[2] < 0 or head[1] > width - 1 or head[2] > height - 1 then
+    if head.x < 0 or head.y < 0 or head.x > width - 1 or head.y > height - 1 then
+        print("out of screen")
         --game is over
         gameover()
     end
 
     --because snake's head is in the tail
-    for i, v in ipairs(tail) do
-        if head[1] == v[1] and head[2] == v[2] and i ~= 1 then
+    for _, tail_part in pairs(tail) do
+        if head.x == tail_part.x and head.y == tail_part.y then
             --game is over
+            print("tail ")
             gameover()
         end
     end
@@ -100,23 +106,31 @@ end
 function gameoverUpdate(dt)
 end
 
-heading = {}
+heading = {
+    left = function()
+        if direction.right ~= move then
+            move = direction.left
+        end
+    end,
 
-function heading.left()
-    left, right, up, down = true, false, false, false
-end
+    right = function()
+        if direction.left ~= move then
+            move = direction.right
+        end
+    end,
 
-function heading.right()
-        left, right, up, down = false, true, false, false
-end
+    up = function()
+        if direction.down ~= move then
+            move = direction.up
+        end
+    end,
 
-function heading.up()
-        left, right, up, down = false, false, true, false
-end
-
-function heading.down()
-        left, right, up, down = false, false, false, true
-end
+    down = function()
+        if direction.up ~= move then
+            move = direction.down
+        end
+    end
+}
 
 function runningKeypressed(key)
     if heading[key] then
@@ -132,38 +146,38 @@ end
 
 function start()
     running()
-    --directions from the keypressed event default is up
-    left, right, up, down = false, false, true, false
-    dirX = 0
-    dirY = -1
+    move = direction.up
     --position for snake's head in center
-    head = { width / 2, (height - 1) / 2 }
+    head = {
+        x = width / 2,
+        y = (height - 1) / 2
+    }
     --table for the snake's tail
     tail = {}
     --set speed and timer
-    speed = 0.25
+    -- speed = 0.25
+    speed = 0.125
     timer = 0
     --table for the apple
-    apple = {}
-    apple = getfreepos()
+    apple = get_free_position()
 end
 
-function getfreepos()
+function get_free_position()
     --random number total game area minus the snake
     local randompos = math.random(width * height - (#tail + 1))
     --free flag and counter
     local free = true
     local cnt = 0
     --iterate in game area, when snake free variable set to false
-    for i = 0, width - 1 do
-        for j = 0, height - 1 do
+    for x = 0, width - 1 do
+        for y = 0, height - 1 do
             --the snake's head
-            if head[1] == i and head[2] == j then
+            if head.x == x and head.y == y then
                 free = false
             end
             --the snake's tail
-            for _, v in ipairs(tail) do
-                if v[1] == i and v[2] == j then
+            for _, v in pairs(tail) do
+                if v.x == x and v.y == y then
                     free = false
                 end
             end
@@ -171,7 +185,7 @@ function getfreepos()
                 cnt = cnt + 1
                 if cnt == randompos then
                     --if counter catch the random number return with the free position
-                    return { i, j }
+                    return { x = x, y = y }
                 end
             else
                 free = true
