@@ -160,33 +160,19 @@ function start()
 end
 
 function get_free_position()
-    --random number total game area minus the snake
-    local randompos = math.random(width * height - (#tail + 1))
-    --free flag and counter
-    local free = true
-    local cnt = 0
-    --iterate in game area, when snake free variable set to false
-    for x = 0, width - 1 do
-        for y = 0, height - 1 do
-            --the snake's head
-            if head.x == x and head.y == y then
-                free = false
-            end
-            --the snake's tail
-            for _, v in pairs(tail) do
-                if v.x == x and v.y == y then
-                    free = false
-                end
-            end
-            if free then
-                cnt = cnt + 1
-                if cnt == randompos then
-                    --if counter catch the random number return with the free position
-                    return { x = x, y = y }
-                end
-            else
-                free = true
+    local x, y
+    repeat
+        x = math.random(width - 1)
+        y = math.random(height - 1)
+        conflict = false
+        if x == head.x and y == head.y then
+            conflict = true
+        end
+        for i = 1, #tail do
+            if x == tail[i].x and y == tail[i].y then
+                conflict = true
             end
         end
-    end
+    until not conflict
+    return { x=x, y=y }
 end
