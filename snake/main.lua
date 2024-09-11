@@ -19,31 +19,27 @@ end
 
 direction = {
     up = function()
-        head.y = head.y - 1
+        snake[1].y = snake[1].y - 1
     end,
     down = function()
-        head.y = head.y + 1
+        snake[1].y = snake[1].y + 1
     end,
     left = function()
-        head.x = head.x - 1
+        snake[1].x = snake[1].x - 1
     end,
     right = function()
-        head.x = head.x + 1
+        snake[1].x = snake[1].x + 1
     end
 }
 
 function runningDraw()
-    --draw the snake's head rounded rectangle with size (width and height also equals unit)
+    --draw the snake rounded rectangle
     love.graphics.setColor(0, 0.8, 0)
-    love.graphics.rectangle("fill", head.x * unit, head.y * unit, unit, unit, 5, 5)
-
-    --draw the tail rounded rectangle (like head)
-    love.graphics.setColor(0, 0.8, 0)
-    for _, tail_part in pairs(tail) do
-        love.graphics.rectangle("fill", tail_part.x * unit, tail_part.y * unit, unit, unit, 5, 5);
+    for _, snake_part in pairs(snake) do
+        love.graphics.rectangle("fill", snake_part.x * unit, snake_part.y * unit, unit, unit, 5, 5);
     end
 
-    --draw the apple rounded rectangle just like head and tail
+    --draw the apple rounded rectangle just like snake
     love.graphics.setColor(0.8, 0, 0)
     love.graphics.rectangle("fill", apple.x * unit, apple.y * unit, unit, unit, 5, 5)
 end
@@ -63,39 +59,40 @@ function runningUpdate(dt)
         return
     end
 
-    local last_head_position = { x = head.x, y = head.y }
-
+    local last_head_position = { x = snake[1].x, y = snake[1].y }
     move()
 
     --check food
-    if head.x == apple.x and head.y == apple.y then
+    if snake[1].x == apple.x and snake[1].y == apple.y then
         --add food and increase the snake
         apple = get_free_position()
-        table.insert(tail, {  })
+        table.insert(snake, {  })
     end
 
-    --set snake tail parts
-    --from tail end to second
-    for tail_pos = #tail, 2, -1 do
-        tail[tail_pos] = tail[tail_pos - 1]
+    --set snake snake parts
+    --from snake end to second
+    for snake_pos = #snake, 3, -1 do
+        snake[snake_pos] = snake[snake_pos - 1]
     end
 
-    if #tail > 0 then
-        tail[1] = last_head_position
+    if #snake > 1 then
+        snake[2] = last_head_position
     end
 
     --check if game is over
     --because snake's head is out of the screen
-    if head.x < 0 or head.y < 0 or head.x > width - 1 or head.y > height - 1 then
+    if snake[1].x < 0 or snake[1].y < 0 or snake[1].x > width - 1 or snake[1].y > height - 1 then
         --game is over
         gameover()
     end
 
-    --because snake's head is in the tail
-    for _, tail_part in pairs(tail) do
-        if head.x == tail_part.x and head.y == tail_part.y then
-            --game is over
-            gameover()
+    --because snake's head is in the snake
+    for _, snake_part in pairs(snake) do
+        if _ > 1 then
+            if snake[1].x == snake_part.x and snake[1].y == snake_part.y then
+                --game is over
+                gameover()
+            end
         end
     end
     timer = 0
@@ -146,12 +143,11 @@ function start()
     running()
     move = direction.up
     --position for snake's head in center
-    head = {
-        x = width / 2,
-        y = (height - 1) / 2
-    }
-    --table for the snake's tail
-    tail = {}
+    --table for the snake
+    snake = { {
+                  x = width / 2,
+                  y = (height - 1) / 2
+              } }
     --set speed and timer
     speed = 0.25
     timer = 0
@@ -160,19 +156,30 @@ function start()
 end
 
 function get_free_position()
-    local x, y
-    repeat
-        x = math.random(width - 1)
-        y = math.random(height - 1)
-        conflict = false
-        if x == head.x and y == head.y then
-            conflict = true
+    --random number total game area minus the snake
+    randompos = math.random(width * height - (#snake))
+    local cnt = 0
+    --iterate in game area
+    gamearea = {}
+    for i = 0, width - 1 do
+        for j = 0, height - 1 do
+            --the snake
+            gamearea[j * width + i] = true
         end
-        for i = 1, #tail do
-            if x == tail[i].x and y == tail[i].y then
-                conflict = true
+    end
+    --when snake set to false
+    for _, v in ipairs(snake) do
+        gamearea[v.y * width + v.x] = false
+    end
+    --iterate again and return
+    for i = 0, width - 1 do
+        for j = 0, height - 1 do
+            if gamearea[j * width + i] then
+                cnt = cnt + 1
+                if cnt == randompos then
+                    return { x = i, y = j }
+                end
             end
         end
-    until not conflict
-    return { x = x, y = y }
+    end
 end
