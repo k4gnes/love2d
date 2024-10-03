@@ -1,7 +1,18 @@
+missingpart = 0
+game15 = {}
+normallove = false
+love.window.setTitle("puzzle15")
+--start/restart game
+
 function love.load()
     -- initialize random number generator
-    math.randomseed(os.time())
-    --start/restart game
+    if (G == nil) then
+        G = love.graphics
+        love.window.setMode(1024, 600)
+        normallove = true
+    else
+        normallove = false
+    end
     start()
 end
 
@@ -13,7 +24,7 @@ end
 
 function runningDraw()
     --draw game area 4x4 square
-    love.graphics.setColor(1, 0, 0)
+    G.setColor(0.8, 0, 0)
 
     for i = 1, 16 do
         if (i % 4 > 0) then
@@ -23,12 +34,12 @@ function runningDraw()
             x = i / 4 * 100
             y = 310
         end
-        love.graphics.rectangle("line", x, y, 100, 100)
+        G.rectangle("line", x, y, 100, 100)
     end
 
     --draw numbers 
-    love.graphics.setNewFont(20)
-    love.graphics.setColor(1, 1, 1)
+    G.setNewFont(20)
+    G.setColor(1, 1, 1)
     for i = 1, 16 do
         if (i % 4 > 0) then
             x = (i % 4) * 100 + 50
@@ -38,22 +49,22 @@ function runningDraw()
             y = (i / 4 - 1) * 100 + 50
         end
 
-        if (game[i] == i) then
-            love.graphics.setColor(1, 0, 0)
+        if (game15[i] == i) then
+            G.setColor(1, 0, 0)
         else
-            love.graphics.setColor(1, 1, 1)
+            G.setColor(1, 1, 1)
         end
-        love.graphics.print(game[i], x, y, 0)
+        G.print(game15[i], x, y, 0)
     end
 
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.printf("Press [ESC] to leave\nPress [SPACE] for a new game", 0, 500, 500, "center")
+    G.setColor(1, 1, 1)
+    G.printf("Press [ESC] to leave\nPress [SPACE] for a new game", 0, 500, 500, "center")
 end
 
 function runningUpdate()
     cnt = 0
     for i = 1, 15 do
-        if (game[i] == i) then
+        if (game15[i] == i) then
             cnt = cnt + 1
         end
     end
@@ -77,35 +88,35 @@ end
 
 direction = {
     left = function()
-        if index % 4 > 0 then
-            game[index] = game[index + 1]
-            game[index + 1] = ""
-            index = index + 1
+        if missingpart % 4 > 0 then
+            game15[missingpart] = game15[missingpart + 1]
+            game15[missingpart + 1] = ""
+            missingpart = missingpart + 1
         end
     end,
 
     right = function()
-        if (index + 3) % 4 > 0 then
-            game[index] = game[index - 1]
-            game[index - 1] = ""
-            index = index - 1
+        if (missingpart + 3) % 4 > 0 then
+            game15[missingpart] = game15[missingpart - 1]
+            game15[missingpart - 1] = ""
+            missingpart = missingpart - 1
         end
     end,
 
     up = function()
-        if index < 13 then
-            game[index] = game[index + 4]
-            game[index + 4] = ""
-            index = index + 4
+        if missingpart < 13 then
+            game15[missingpart] = game15[missingpart + 4]
+            game15[missingpart + 4] = ""
+            missingpart = missingpart + 4
         end
 
     end,
 
     down = function()
-        if index > 4 then
-            game[index] = game[index - 4]
-            game[index - 4] = ""
-            index = index - 4
+        if missingpart > 4 then
+            game15[missingpart] = game15[missingpart - 4]
+            game15[missingpart - 4] = ""
+            missingpart = missingpart - 4
         end
     end
 }
@@ -117,8 +128,8 @@ end
 
 function gameoverDraw()
     runningDraw()
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.printf("PUZZLE SOLVED\nPress [SPACE] for a new game", 0, 500, 500, "center")
+    G.setColor(1, 1, 1)
+    G.printf("PUZZLE SOLVED\nPress [SPACE] for a new game", 0, 500, 500, "center")
 end
 
 function gameoverKeypressed(key)
@@ -126,32 +137,35 @@ function gameoverKeypressed(key)
         start()
     end
 end
-
-function start()
-    running()
-    --position of the hole
-    index = math.random(16)
-    game = {}
-    fillGame()
-end
-
 function fillGame()
-    cnt = 0;
+    cnt = 0
     while cnt < 16 do
         random = math.random(15)
         neednew = false
         for i = 1, 15 do
-            if game[i] == random then
+            if game15[i] == random then
                 neednew = true
             end
         end
         if not neednew then
-            game[cnt] = random
+            game15[cnt] = random
             cnt = cnt + 1
         end
     end
-    game[16] = game[index]
-    game[index] = ""
+    game15[16] = game15[missingpart]
+    game15[missingpart] = ""
 
 end
+function start()
+    math.randomseed(os.time())
 
+    running()
+    --position of the hole
+    missingpart = math.random(16)
+    game15 = {}
+    fillGame()
+end
+
+if (normallove == false) then
+    start()
+end
