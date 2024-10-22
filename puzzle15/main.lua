@@ -69,7 +69,7 @@ function runningUpdate()
         end
     end
     if cnt == 15 then
-        gameover()
+        -- gameover()
     end
 
 end
@@ -154,16 +154,25 @@ function fillGame()
     end
     game15[16] = game15[missingpart]
     game15[missingpart] = ""
+    --todo check if table solvable or not
 
+end
+function fillPhaseZero()
+    for i = 1, 15 do
+        game15[i] = i
+    end
+    game15[16] = ""
 end
 function start()
     math.randomseed(os.time())
 
     running()
     --position of the hole
-    missingpart = math.random(16)
+    --missingpart = math.random(16)
+    missingpart = 16
     game15 = {}
-    fillGame()
+    fillPhaseZero()
+    --fillGame()
 end
 
 if (normallove == false) then
