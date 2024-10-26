@@ -37,7 +37,7 @@ function runningDraw()
         G.rectangle("line", x, y, 100, 100)
     end
 
-    --draw numbers 
+    --draw numbers
     G.setNewFont(20)
     G.setColor(1, 1, 1)
     for i = 1, 16 do
@@ -58,7 +58,7 @@ function runningDraw()
     end
 
     G.setColor(1, 1, 1)
-    G.printf("Press [ESC] to leave\nPress [SPACE] for a new game", 0, 500, 500, "center")
+    --   G.printf("Press [ESC] to leave\nPress [SPACE] for a new game", 0, 500, 500, "center")
 end
 
 function runningUpdate()
@@ -69,7 +69,7 @@ function runningUpdate()
         end
     end
     if cnt == 15 then
-        -- gameover()
+        gameover()
     end
 
 end
@@ -139,6 +139,9 @@ function gameoverKeypressed(key)
 end
 function fillGame()
     cnt = 0
+    for i = 1, 16 do
+        game15[i] = 0
+    end
     while cnt < 16 do
         random = math.random(15)
         neednew = false
@@ -154,25 +157,100 @@ function fillGame()
     end
     game15[16] = game15[missingpart]
     game15[missingpart] = ""
-    --todo check if table solvable or not
-
 end
+
+function fillGameFix()
+    game15[1] = 5
+    game15[2] = 6
+    game15[3] = 12
+    game15[4] = 3
+
+    game15[5] = ""
+    game15[6] = 4
+    game15[7] = 11
+    game15[8] = 13
+
+    game15[9] = 7
+    game15[10] = 10
+    game15[11] = 14
+    game15[12] = 1
+
+    game15[13] = 2
+    game15[14] = 15
+    game15[15] = 8
+    game15[16] = 9
+end
+
 function fillPhaseZero()
     for i = 1, 15 do
         game15[i] = i
     end
     game15[16] = ""
 end
+
+function getParity(number)
+    oddmap = { 15, 12, 13, 10, 7, 4, 5, 2 }
+    odd = false
+    for i = 1, #oddmap do
+        if oddmap[i] == number then
+            odd = true
+        end
+    end
+    if odd then
+        return 1
+    else
+        return 0
+    end
+end
+
+function getSortedParity()
+    counter = 0
+    swap = 0
+    sorted = {}
+    for i = 1, 16 do
+        sorted[i] = game15[i]
+    end
+    sorted[missingpart] = 16
+    for i = 1, 16 do
+        for j = i, 16 do
+            if sorted[j] == i then
+                if i == j then
+                    --   print(i, j, sorted[j])
+                    break
+                else
+                    --   print(i, j, sorted[j])
+                    swap = sorted[i]
+                    sorted[i] = i
+                    sorted[j] = swap
+                    counter = counter + 1
+                end
+            end
+        end
+    end
+    print(counter)
+    return counter % 2
+end
+
 function start()
     math.randomseed(os.time())
-
     running()
     --position of the hole
-    --missingpart = math.random(16)
-    missingpart = 16
     game15 = {}
-    fillPhaseZero()
-    --fillGame()
+    --phase 0
+    --missingpart = 16
+    --fillPhaseZero()
+
+    --phase 1
+    missingpart = math.random(16)
+    parity = getParity(missingpart)
+    gameParity = (parity + 1) % 2
+    print(missingpart, parity, gameParity)
+    while (gameParity ~= parity) do
+        fillGame()
+        gameParity = getSortedParity()
+        print(missingpart, parity, gameParity)
+    end
+
 end
 
 if (normallove == false) then
