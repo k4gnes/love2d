@@ -13,6 +13,7 @@ function love.load()
     else
         normallove = false
     end
+    print(normallove)
     start()
 end
 
@@ -20,6 +21,11 @@ function running()
     love.draw = runningDraw
     love.update = runningUpdate
     love.keypressed = runningKeypressed
+end
+function solving()
+    love.draw = solvingDraw
+    love.update = solvingUpdate
+    love.keypressed = solvingKeypressed
 end
 
 function runningDraw()
@@ -58,10 +64,10 @@ function runningDraw()
     end
 
     G.setColor(1, 1, 1)
-    --   G.printf("Press [ESC] to leave\nPress [SPACE] for a new game", 0, 500, 500, "center")
+    G.printf("Press [ESC] to leave\nPress [SPACE] for a new game", 0, 500, 500, "center")
 end
 
-function runningUpdate()
+function runningUpdate(dt)
     cnt = 0
     for i = 1, 15 do
         if (game15[i] == i) then
@@ -69,7 +75,8 @@ function runningUpdate()
         end
     end
     if cnt == 15 then
-        gameover()
+       -- gameover()
+       -- status="gameover"
     end
 
 end
@@ -84,6 +91,11 @@ function runningKeypressed(key)
     if key == "escape" then
         love.event.quit()
     end
+    if key == "s" then
+        --todo solve moves
+        status="solving"
+        solving()
+    end
 end
 
 direction = {
@@ -92,6 +104,11 @@ direction = {
             game15[missingpart] = game15[missingpart + 1]
             game15[missingpart + 1] = ""
             missingpart = missingpart + 1
+            print(missingpart,  #movelist)
+            if  status=="running" then
+                print("insert left", status)
+                table.insert(movelist, "left")
+            end
         end
     end,
 
@@ -100,6 +117,11 @@ direction = {
             game15[missingpart] = game15[missingpart - 1]
             game15[missingpart - 1] = ""
             missingpart = missingpart - 1
+            print(missingpart,  #movelist)
+            if status=="running" then
+                print("insert right", status)
+                table.insert(movelist, "right")
+            end
         end
     end,
 
@@ -108,6 +130,11 @@ direction = {
             game15[missingpart] = game15[missingpart + 4]
             game15[missingpart + 4] = ""
             missingpart = missingpart + 4
+            print(missingpart, status, #movelist)
+            if status=="running" then
+                print("insert up", status)
+                table.insert(movelist, "up")
+            end
         end
 
     end,
@@ -117,6 +144,11 @@ direction = {
             game15[missingpart] = game15[missingpart - 4]
             game15[missingpart - 4] = ""
             missingpart = missingpart - 4
+            print(missingpart, status, #movelist)
+            if status=="running" then
+                print("insert down", status)
+                table.insert(movelist, "down")
+            end
         end
     end
 }
@@ -129,12 +161,98 @@ end
 function gameoverDraw()
     runningDraw()
     G.setColor(1, 1, 1)
-    G.printf("PUZZLE SOLVED\nPress [SPACE] for a new game", 0, 500, 500, "center")
+    G.printf("PUZZLE SOLVED\nPress [SPACE] for a new game\n or [ESCAPE] for exit", 0, 500, 500, "center")
 end
 
 function gameoverKeypressed(key)
     if key == "space" then
         start()
+    end
+    if key == "escape" then
+        love.event.quit()
+    end
+end
+
+function solve()
+    if( status=="solving" and #movelist>0) then
+        print( "solve movelist size start", #movelist)
+        if movelist[#movelist] == "left" then
+            direction.right()
+        end
+        if movelist[#movelist] == "right" then
+            direction.left()
+        end
+        if movelist[#movelist] == "up" then
+            direction.down()
+        end
+        if movelist[#movelist] == "down" then
+            direction.up()
+        end
+        table.remove(movelist,#movelist)
+        print("solve movelist size end", #movelist)
+    end
+end
+function solvingUpdate()
+    print("solvingUpdate movelist size, status: ", #movelist, ", ", status)
+    if #movelist> 0 and status=="solving" then
+        solve()
+    else
+        status="running"
+        start()
+    end
+end
+function solvingDraw()
+    print("solvingDraw")
+    --draw game area 4x4 square
+    G.setColor(0.8, 0, 0)
+
+    for i = 1, 16 do
+        if (i % 4 > 0) then
+            x = (math.floor(i / 4) + 1) * 100
+            y = (i % 4 - 1) * 100 + 10
+        else
+            x = i / 4 * 100
+            y = 310
+        end
+        G.rectangle("line", x, y, 100, 100)
+    end
+
+    --draw numbers
+    G.setNewFont(20)
+    G.setColor(1, 1, 1)
+    for i = 1, 16 do
+        if (i % 4 > 0) then
+            x = (i % 4) * 100 + 50
+            y = math.floor(i / 4) * 100 + 50
+        else
+            x = 450
+            y = (i / 4 - 1) * 100 + 50
+        end
+
+        if (game15[i] == i) then
+            G.setColor(1, 0, 0)
+        else
+            G.setColor(1, 1, 1)
+        end
+        love.timer.sleep(1/30)
+        G.print(game15[i], x, y, 0)
+    end
+
+    G.setColor(1, 1, 1)
+    G.printf("Press [ESC] to leave", 0, 500, 500, "center")
+end
+
+function solvingKeypressed(key)
+    if direction[key] then
+        direction[key]()
+    end
+    if key == "escape" then
+        love.event.quit()
+    end
+    if key == "s" then
+        --todo solve moves
+        status="solving"
+        solving()
     end
 end
 function fillGame()
@@ -234,25 +352,28 @@ end
 function start()
     math.randomseed(os.time())
     running()
+    status = "running"
+    timer = 0
+    speed = 0.25
     --position of the hole
     game15 = {}
+    movelist = {}
     --phase 0
-    --missingpart = 16
-    --fillPhaseZero()
+    missingpart = 16
+    fillPhaseZero()
 
     --phase 1
-    missingpart = math.random(16)
-    parity = getParity(missingpart)
-    gameParity = (parity + 1) % 2
-    print(missingpart, parity, gameParity)
-    while (gameParity ~= parity) do
-        fillGame()
-        gameParity = getSortedParity()
-        print(missingpart, parity, gameParity)
-    end
+    --missingpart = math.random(16)
+    --parity = getParity(missingpart)
+    --gameParity = (parity + 1) % 2
+    --while (gameParity ~= parity) do
+    --    fillGame()
+    --    gameParity = getSortedParity()
+    --    print(missingpart, parity, gameParity)
+    --end
 
 end
 
 if (normallove == false) then
-    start()
+    --    start()
 end
