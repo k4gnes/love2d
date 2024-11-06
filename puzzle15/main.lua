@@ -1,9 +1,3 @@
-missingpart = 0
-game15 = {}
-normallove = false
-love.window.setTitle("puzzle15")
---start/restart game
-
 function love.load()
     -- initialize random number generator
     if (G == nil) then
@@ -13,7 +7,6 @@ function love.load()
     else
         normallove = false
     end
-    print(normallove)
     start()
 end
 
@@ -22,51 +15,33 @@ function running()
     love.update = runningUpdate
     love.keypressed = runningKeypressed
 end
+function mixing()
+    love.draw = mixingDraw
+    love.update = mixingUpdate
+    love.keypressed = mixingKeypressed
+end
 function solving()
     love.draw = solvingDraw
     love.update = solvingUpdate
     love.keypressed = solvingKeypressed
 end
-
-function runningDraw()
-    --draw game area 4x4 square
-    G.setColor(0.8, 0, 0)
-
-    for i = 1, 16 do
-        if (i % 4 > 0) then
-            x = (math.floor(i / 4) + 1) * 100
-            y = (i % 4 - 1) * 100 + 10
-        else
-            x = i / 4 * 100
-            y = 310
-        end
-        G.rectangle("line", x, y, 100, 100)
-    end
-
-    --draw numbers
-    G.setNewFont(20)
-    G.setColor(1, 1, 1)
-    for i = 1, 16 do
-        if (i % 4 > 0) then
-            x = (i % 4) * 100 + 50
-            y = math.floor(i / 4) * 100 + 50
-        else
-            x = 450
-            y = (i / 4 - 1) * 100 + 50
-        end
-
-        if (game15[i] == i) then
-            G.setColor(1, 0, 0)
-        else
-            G.setColor(1, 1, 1)
-        end
-        G.print(game15[i], x, y, 0)
-    end
-
-    G.setColor(1, 1, 1)
-    G.printf("Press [ESC] to leave\nPress [SPACE] for a new game", 0, 500, 500, "center")
+function randoming()
+    love.draw = randomingDraw
+    love.update = randomingUpdate
+    love.keypressed = randomingKeypressed
+end
+function gameover()
+    love.draw = gameoverDraw
+    love.update = gameoverUpdate
+    love.keypressed = gameoverKeypressed
 end
 
+
+function runningDraw()
+    drawBoard()
+    G.setColor(1, 1, 1)
+    G.printf("Press [ESC] to leave\nPress [r] to random\nPress [s] to SOLVE\nPress [m] to MIX", 0, 500, 500, "center")
+end
 function runningUpdate(dt)
     cnt = 0
     for i = 1, 15 do
@@ -75,12 +50,11 @@ function runningUpdate(dt)
         end
     end
     if cnt == 15 then
-       -- gameover()
-       -- status="gameover"
+        --     status = "gameover"
+        --     gameover()
     end
 
 end
-
 function runningKeypressed(key)
     if direction[key] then
         direction[key]()
@@ -92,9 +66,16 @@ function runningKeypressed(key)
         love.event.quit()
     end
     if key == "s" then
-        --todo solve moves
-        status="solving"
+        status = "solving"
         solving()
+    end
+    if key == "m" then
+        status = "mixing"
+        mixed = false
+        mixing()
+    end
+    if key == "r" then
+        startRandom()
     end
 end
 
@@ -104,8 +85,8 @@ direction = {
             game15[missingpart] = game15[missingpart + 1]
             game15[missingpart + 1] = ""
             missingpart = missingpart + 1
-            print(missingpart,  #movelist)
-            if  status=="running" then
+            print(missingpart, #movelist)
+            if status == "running" or status == "mixing" then
                 print("insert left", status)
                 table.insert(movelist, "left")
             end
@@ -117,8 +98,8 @@ direction = {
             game15[missingpart] = game15[missingpart - 1]
             game15[missingpart - 1] = ""
             missingpart = missingpart - 1
-            print(missingpart,  #movelist)
-            if status=="running" then
+            print(missingpart, #movelist)
+            if status == "running" or status == "mixing" then
                 print("insert right", status)
                 table.insert(movelist, "right")
             end
@@ -126,12 +107,13 @@ direction = {
     end,
 
     up = function()
+        print("pressed up, status", status)
         if missingpart < 13 then
             game15[missingpart] = game15[missingpart + 4]
             game15[missingpart + 4] = ""
             missingpart = missingpart + 4
             print(missingpart, status, #movelist)
-            if status=="running" then
+            if status == "running" or status == "mixing" then
                 print("insert up", status)
                 table.insert(movelist, "up")
             end
@@ -145,7 +127,7 @@ direction = {
             game15[missingpart - 4] = ""
             missingpart = missingpart - 4
             print(missingpart, status, #movelist)
-            if status=="running" then
+            if status == "running" or status == "mixing" then
                 print("insert down", status)
                 table.insert(movelist, "down")
             end
@@ -153,52 +135,62 @@ direction = {
     end
 }
 
-function gameover()
-    love.draw = gameoverDraw
-    love.keypressed = gameoverKeypressed
+function mixingUpdate()
+    if not mixed then
+        mix()
+    else
+        cnt = 0
+        for i = 1, 15 do
+            if (game15[i] == i) then
+                cnt = cnt + 1
+            end
+        end
+        if cnt == 15 then
+            gameover()
+            status = "gameover"
+        end
+    end
 end
-
-function gameoverDraw()
-    runningDraw()
+function mixingDraw()
+    drawBoard()
     G.setColor(1, 1, 1)
-    G.printf("PUZZLE SOLVED\nPress [SPACE] for a new game\n or [ESCAPE] for exit", 0, 500, 500, "center")
+    G.printf("Press [ESC] to leave\nPress [SPACE] to new game\nPress [s] to SOLVE", 0, 500, 500, "center")
 end
-
-function gameoverKeypressed(key)
-    if key == "space" then
-        start()
+function mixingKeypressed(key)
+    if direction[key] then
+        direction[key]()
     end
     if key == "escape" then
         love.event.quit()
     end
-end
-
-function solve()
-    if( status=="solving" and #movelist>0) then
-        print( "solve movelist size start", #movelist)
-        if movelist[#movelist] == "left" then
-            direction.right()
-        end
-        if movelist[#movelist] == "right" then
-            direction.left()
-        end
-        if movelist[#movelist] == "up" then
-            direction.down()
-        end
-        if movelist[#movelist] == "down" then
-            direction.up()
-        end
-        table.remove(movelist,#movelist)
-        print("solve movelist size end", #movelist)
+    if key == "space" then
+        start()
+    end
+    if key == "s" then
+        status = "solving"
+        solving()
     end
 end
+
 function solvingUpdate()
     print("solvingUpdate movelist size, status: ", #movelist, ", ", status)
-    if #movelist> 0 and status=="solving" then
+    if #movelist > 0 and status == "solving" then
         solve()
     else
-        status="running"
-        start()
+        --   status = "running"
+        --   start()
+    end
+    if #movelist == 0 then
+        cnt = 0
+        for i = 1, 15 do
+            if (game15[i] == i) then
+                cnt = cnt + 1
+            end
+        end
+        if cnt == 15 then
+            gameover()
+            status = "gameover"
+        end
     end
 end
 function solvingDraw()
@@ -234,14 +226,13 @@ function solvingDraw()
         else
             G.setColor(1, 1, 1)
         end
-        love.timer.sleep(1/30)
+        love.timer.sleep(1 / 30)
         G.print(game15[i], x, y, 0)
     end
 
     G.setColor(1, 1, 1)
-    G.printf("Press [ESC] to leave", 0, 500, 500, "center")
+    G.printf("Press [ESC] to leave\nPress [SPACE] to new game", 0, 500, 500, "center")
 end
-
 function solvingKeypressed(key)
     if direction[key] then
         direction[key]()
@@ -249,12 +240,137 @@ function solvingKeypressed(key)
     if key == "escape" then
         love.event.quit()
     end
-    if key == "s" then
-        --todo solve moves
-        status="solving"
-        solving()
+    if key == "space" then
+        start()
     end
 end
+
+function randomingUpdate()
+    cnt = 0
+    for i = 1, 15 do
+        if (game15[i] == i) then
+            cnt = cnt + 1
+        end
+    end
+    if cnt == 15 then
+        gameover()
+        status = "gameover"
+    end
+end
+function randomingDraw()
+
+    drawBoard()
+    G.setColor(1, 1, 1)
+    G.printf("Press [ESC] to leave\nPress [SPACE] to new game\n--todo Press [s] to SOLVE", 0, 500, 500, "center")
+
+end
+function randomingKeypressed(key)
+    if direction[key] then
+        direction[key]()
+    end
+    if key == "escape" then
+        love.event.quit()
+    end
+    if key == "space" then
+        start()
+    end
+end
+
+function gameoverDraw()
+    drawBoard()
+    G.setColor(1, 1, 1)
+    G.printf("PUZZLE SOLVED\nPress [SPACE] for a new game\n or [ESCAPE] for exit", 0, 500, 500, "center")
+end
+function gameoverUpdate()
+
+end
+function gameoverKeypressed(key)
+    if key == "space" then
+        start()
+    end
+    if key == "escape" then
+        love.event.quit()
+    end
+end
+
+function drawBoard()
+    --draw game area 4x4 square
+    G.setColor(0.8, 0, 0)
+
+    for i = 1, 16 do
+        if (i % 4 > 0) then
+            x = (math.floor(i / 4) + 1) * 100
+            y = (i % 4 - 1) * 100 + 10
+        else
+            x = i / 4 * 100
+            y = 310
+        end
+        G.rectangle("line", x, y, 100, 100)
+    end
+
+    --draw numbers
+    G.setNewFont(20)
+    G.setColor(1, 1, 1)
+    for i = 1, 16 do
+        if (i % 4 > 0) then
+            x = (i % 4) * 100 + 50
+            y = math.floor(i / 4) * 100 + 50
+        else
+            x = 450
+            y = (i / 4 - 1) * 100 + 50
+        end
+
+        if (game15[i] == i) then
+            G.setColor(1, 0, 0)
+        else
+            G.setColor(1, 1, 1)
+        end
+        G.print(game15[i], x, y, 0)
+    end
+
+end
+
+function mix()
+    steps = math.random(80)
+    for i = 1, steps do
+        dir = math.random(4)
+        if dir == 1 then
+            direction.right()
+        end
+        if dir == 2 then
+            direction.left()
+        end
+        if dir == 3 then
+            direction.down()
+        end
+        if dir == 4 then
+            direction.up()
+        end
+    end
+    mixed = true
+    print("called mix movelist size: ", #movelist)
+end
+
+function solve()
+    if (status == "solving" and #movelist > 0) then
+        print("solve movelist size start", #movelist, movelist[#movelist])
+        if movelist[#movelist] == "left" then
+            direction.right()
+        end
+        if movelist[#movelist] == "right" then
+            direction.left()
+        end
+        if movelist[#movelist] == "up" then
+            direction.down()
+        end
+        if movelist[#movelist] == "down" then
+            direction.up()
+        end
+        table.remove(movelist, #movelist)
+        print("solve movelist size end", #movelist)
+    end
+end
+
 function fillGame()
     cnt = 0
     for i = 1, 16 do
@@ -304,6 +420,7 @@ function fillPhaseZero()
         game15[i] = i
     end
     game15[16] = ""
+    missingpart = 16
 end
 
 function getParity(number)
@@ -353,27 +470,29 @@ function start()
     math.randomseed(os.time())
     running()
     status = "running"
-    timer = 0
-    speed = 0.25
     --position of the hole
     game15 = {}
     movelist = {}
     --phase 0
-    missingpart = 16
     fillPhaseZero()
+end
 
+function startRandom()
+    print("startRandom")
+    game15 = {}
+    movelist = {}
     --phase 1
-    --missingpart = math.random(16)
-    --parity = getParity(missingpart)
-    --gameParity = (parity + 1) % 2
-    --while (gameParity ~= parity) do
-    --    fillGame()
-    --    gameParity = getSortedParity()
-    --    print(missingpart, parity, gameParity)
-    --end
-
+    missingpart = math.random(16)
+    parity = getParity(missingpart)
+    gameParity = (parity + 1) % 2
+    while (gameParity ~= parity) do
+        fillGame()
+        gameParity = getSortedParity()
+        print(missingpart, parity, gameParity)
+    end
+    randoming()
+    status = "randoming"
 end
 
-if (normallove == false) then
-    --    start()
-end
+
+
