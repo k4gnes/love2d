@@ -36,7 +36,6 @@ function gameover()
     love.keypressed = gameoverKeypressed
 end
 
-
 function runningDraw()
     drawBoard()
     G.setColor(1, 1, 1)
@@ -177,8 +176,10 @@ function solvingUpdate()
     if #movelist > 0 and status == "solving" then
         solve()
     else
-        --   status = "running"
-        --   start()
+        if status=="randoming" then
+            solveRandom()
+            status="solving"
+        end
     end
     if #movelist == 0 then
         cnt = 0
@@ -274,6 +275,9 @@ function randomingKeypressed(key)
     if key == "space" then
         start()
     end
+    if key == "s" then
+        solving()
+    end
 end
 
 function gameoverDraw()
@@ -332,19 +336,85 @@ end
 
 function mix()
     steps = math.random(80)
-    for i = 1, steps do
+    dir = 0
+    last = 0
+    cnt = 0
+    while cnt < steps do
         dir = math.random(4)
-        if dir == 1 then
-            direction.right()
-        end
-        if dir == 2 then
-            direction.left()
-        end
-        if dir == 3 then
-            direction.down()
-        end
-        if dir == 4 then
-            direction.up()
+        if last > 0 then
+            if dir == 1 then
+                if last ~= 2 then
+                    size = #movelist
+                    direction.right()
+                    if #movelist > size then
+                        cnt = cnt + 1
+                        last = 1
+                    end
+                end
+            end
+            if dir == 2 then
+                if last ~= 1 then
+                    size = #movelist
+                    direction.left()
+                    if #movelist > size then
+                        cnt = cnt + 1
+                        last = 2
+                    end
+                end
+            end
+            if dir == 3 then
+                if last ~= 4 then
+                    size = #movelist
+                    direction.down()
+                    if #movelist > size then
+                        cnt = cnt + 1
+                        last = 3
+                    end
+                end
+            end
+            if dir == 4 then
+                if last ~= 3 then
+                    size = #movelist
+                    direction.up()
+                    if #movelist > size then
+                        cnt = cnt + 1
+                        last = 4
+                    end
+                end
+            end
+        else
+            if dir == 1 then
+                size = #movelist
+                direction.right()
+                if #movelist > size then
+                    cnt = cnt + 1
+                    last = 1
+                end
+            end
+            if dir == 2 then
+                size = #movelist
+                direction.left()
+                if #movelist > size then
+                    cnt = cnt + 1
+                    last = 2
+                end
+            end
+            if dir == 3 then
+                size = #movelist
+                direction.down()
+                if #movelist > size then
+                    cnt = cnt + 1
+                    last = 3
+                end
+            end
+            if dir == 4 then
+                size = #movelist
+                direction.up()
+                if #movelist > size then
+                    cnt = cnt + 1
+                    last = 4
+                end
+            end
         end
     end
     mixed = true
@@ -370,7 +440,9 @@ function solve()
         print("solve movelist size end", #movelist)
     end
 end
-
+function solveRandom()
+    --todo fill movelist
+end
 function fillGame()
     cnt = 0
     for i = 1, 16 do
