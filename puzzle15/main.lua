@@ -3,43 +3,57 @@ function love.load()
     if (G == nil) then
         G = love.graphics
         love.window.setMode(1024, 600)
+        love.window.setTitle("puzzle15")
         normallove = true
     else
         normallove = false
     end
     start()
 end
-
+game={
+    draw=runningDraw,
+    keypressed=runningKeypressed,
+    update=runningUpdate
+}
+function love.draw()
+    game.draw()
+end
+function love.keypressed(key)
+    game.keypressed(key)
+end
+function love.update(dt)
+    game.update(dt)
+end
 function running()
-    love.draw = runningDraw
-    love.update = runningUpdate
-    love.keypressed = runningKeypressed
+    game.draw = runningDraw
+    game.update = runningUpdate
+    game.keypressed = runningKeypressed
 end
 function mixing()
-    love.draw = mixingDraw
-    love.update = mixingUpdate
-    love.keypressed = mixingKeypressed
+    game.draw = mixingDraw
+    game.update = mixingUpdate
+    game.keypressed = mixingKeypressed
 end
 function solving()
-    love.draw = solvingDraw
-    love.update = solvingUpdate
-    love.keypressed = solvingKeypressed
+    game.draw = solvingDraw
+    game.update = solvingUpdate
+    game.keypressed = solvingKeypressed
 end
 function randoming()
-    love.draw = randomingDraw
-    love.update = randomingUpdate
-    love.keypressed = randomingKeypressed
+    game.draw = randomingDraw
+    game.update = randomingUpdate
+    game.keypressed = randomingKeypressed
 end
 function gameover()
-    love.draw = gameoverDraw
-    love.update = gameoverUpdate
-    love.keypressed = gameoverKeypressed
+    game.draw = gameoverDraw
+    game.update = gameoverUpdate
+    game.keypressed = gameoverKeypressed
 end
 
 function runningDraw()
     drawBoard()
     G.setColor(1, 1, 1)
-    G.printf("Press [ESC] to leave\nPress [r] to random\nPress [s] to SOLVE\nPress [m] to MIX", 0, 500, 500, "center")
+    G.printf("Press [ESC] to leave\nPress [r] to random\nPress [s] to SOLVE\nPress [m] to MIX\nPress [t] to test", 0, 450, 500, "center")
 end
 function runningUpdate(dt)
     cnt = 0
@@ -71,16 +85,31 @@ function runningKeypressed(key)
     if key == "m" then
         status = "mixing"
         mixed = false
+        steps = 0
         mixing()
     end
     if key == "r" then
         startRandom()
+    end
+    if key == "t" then
+        game15 = {}
+        movelist = {}
+        --phase 0
+        fillGameFix()
+        solveRandom()
+        print("movelist size", #movelist)
+        for i = 1, #movelist do
+            print("----->MOVELISt i: ", i, movelist[i])
+        end
+        status = "solving"
+        solving()
     end
 end
 
 direction = {
     left = function()
         if missingpart % 4 > 0 then
+
             game15[missingpart] = game15[missingpart + 1]
             game15[missingpart + 1] = ""
             missingpart = missingpart + 1
@@ -135,26 +164,92 @@ direction = {
 }
 
 function mixingUpdate()
-    if not mixed then
-        mix()
-    else
-        cnt = 0
-        for i = 1, 15 do
-            if (game15[i] == i) then
-                cnt = cnt + 1
-            end
+    if not mixed and status == "mixing" and steps == 0 then
+        steps = math.random(80)
+        print("mixing steps", steps)
+        dir = 0
+        last = 0
+        cntr = 0
+        old = 0
+        size = #movelist
+        old = last
+        last = mix(last)
+        if #movelist > size then
+            cntr = cntr + 1
+        else
+            last = old
         end
-        if cnt == 15 then
-            gameover()
-            status = "gameover"
+    else
+        if not mixed and status == "mixing" and cntr < steps then
+            size = #movelist
+            old = last
+            last = mix(last)
+            if #movelist > size then
+                cntr = cntr + 1
+            else
+                last = old
+            end
+        else
+            if not mixed and status == "mixing" and cntr == steps then
+                mixed = true
+            else
+                cnt = 0
+                for i = 1, 15 do
+                    if (game15[i] == i) then
+                        cnt = cnt + 1
+                    end
+                end
+                if cnt == 15 then
+                    gameover()
+                    status = "gameover"
+                end
+            end
         end
     end
 end
+
 function mixingDraw()
-    drawBoard()
+    -- drawBoard()
+
+    --draw game area 4x4 square
+    G.setColor(0.8, 0, 0)
+
+    for i = 1, 16 do
+        if (i % 4 > 0) then
+            x = (math.floor(i / 4) + 1) * 100
+            y = (i % 4 - 1) * 100 + 10
+        else
+            x = i / 4 * 100
+            y = 310
+        end
+        G.rectangle("line", x, y, 100, 100)
+    end
+
+    --draw numbers
+    G.setNewFont(20)
+    G.setColor(1, 1, 1)
+    for i = 1, 16 do
+        if (i % 4 > 0) then
+            x = (i % 4) * 100 + 50
+            y = math.floor(i / 4) * 100 + 50
+        else
+            x = 450
+            y = (i / 4 - 1) * 100 + 50
+        end
+
+        if (game15[i] == i) then
+            G.setColor(1, 0, 0)
+        else
+            G.setColor(1, 1, 1)
+        end
+        love.timer.sleep(1 / 100)
+        G.print(game15[i], x, y, 0)
+    end
+
     G.setColor(1, 1, 1)
     G.printf("Press [ESC] to leave\nPress [SPACE] to new game\nPress [s] to SOLVE", 0, 500, 500, "center")
 end
+
 function mixingKeypressed(key)
     if direction[key] then
         direction[key]()
@@ -176,9 +271,10 @@ function solvingUpdate()
     if #movelist > 0 and status == "solving" then
         solve()
     else
-        if status=="randoming" then
+        if status == "randoming" then
             solveRandom()
-            status="solving"
+            print("movelist size", #movelist)
+            status = "solving"
         end
     end
     if #movelist == 0 then
@@ -334,96 +430,46 @@ function drawBoard()
 
 end
 
-function mix()
-    steps = math.random(80)
-    dir = 0
-    last = 0
-    cnt = 0
-    while cnt < steps do
-        dir = math.random(4)
-        if last > 0 then
-            if dir == 1 then
-                if last ~= 2 then
-                    size = #movelist
-                    direction.right()
-                    if #movelist > size then
-                        cnt = cnt + 1
-                        last = 1
-                    end
-                end
-            end
-            if dir == 2 then
-                if last ~= 1 then
-                    size = #movelist
-                    direction.left()
-                    if #movelist > size then
-                        cnt = cnt + 1
-                        last = 2
-                    end
-                end
-            end
-            if dir == 3 then
-                if last ~= 4 then
-                    size = #movelist
-                    direction.down()
-                    if #movelist > size then
-                        cnt = cnt + 1
-                        last = 3
-                    end
-                end
-            end
-            if dir == 4 then
-                if last ~= 3 then
-                    size = #movelist
-                    direction.up()
-                    if #movelist > size then
-                        cnt = cnt + 1
-                        last = 4
-                    end
-                end
-            end
-        else
-            if dir == 1 then
-                size = #movelist
-                direction.right()
-                if #movelist > size then
-                    cnt = cnt + 1
-                    last = 1
-                end
-            end
-            if dir == 2 then
-                size = #movelist
-                direction.left()
-                if #movelist > size then
-                    cnt = cnt + 1
-                    last = 2
-                end
-            end
-            if dir == 3 then
-                size = #movelist
-                direction.down()
-                if #movelist > size then
-                    cnt = cnt + 1
-                    last = 3
-                end
-            end
-            if dir == 4 then
-                size = #movelist
-                direction.up()
-                if #movelist > size then
-                    cnt = cnt + 1
-                    last = 4
-                end
-            end
+function mix(last)
+
+    dir = math.random(4)
+    --right
+    if dir == 1 then
+        if last ~= 2 then
+            direction.right()
+            return dir
+        end
+
+    end
+    --left
+    if dir == 2 then
+        if last ~= 1 then
+            direction.left()
+            return dir
         end
     end
-    mixed = true
-    print("called mix movelist size: ", #movelist)
+    --down
+    if dir == 3 then
+        if last ~= 4 then
+            direction.down()
+            return dir
+        end
+    end
+    --up
+    if dir == 4 then
+        if last ~= 3 then
+            direction.up()
+            return dir
+        end
+    end
+
+    print("called mix movelist size: ", #movelist, cnt, last)
+    return last
 end
 
 function solve()
     if (status == "solving" and #movelist > 0) then
-        print("solve movelist size start", #movelist, movelist[#movelist])
+        print("solve movelist size start", #movelist, movelist[#movelist], missingpart)
         if movelist[#movelist] == "left" then
             direction.right()
         end
@@ -437,12 +483,18 @@ function solve()
             direction.up()
         end
         table.remove(movelist, #movelist)
-        print("solve movelist size end", #movelist)
+        print("solve movelist size end", #movelist, missingpart)
     end
 end
+
 function solveRandom()
     --todo fill movelist
+
+    gameSolved = {}
+    gameSolved = fillPhaseZero(gameSolved)
+
 end
+
 function fillGame()
     cnt = 0
     for i = 1, 16 do
@@ -466,33 +518,34 @@ function fillGame()
 end
 
 function fillGameFix()
-    game15[1] = 5
-    game15[2] = 6
+    game15[1] = 11
+    game15[2] = 14
     game15[3] = 12
-    game15[4] = 3
+    game15[4] = 1
 
-    game15[5] = ""
-    game15[6] = 4
-    game15[7] = 11
-    game15[8] = 13
+    game15[5] = 4
+    game15[6] = 9
+    game15[7] = 3
+    game15[8] = 2
 
-    game15[9] = 7
-    game15[10] = 10
-    game15[11] = 14
-    game15[12] = 1
+    game15[9] = 15
+    game15[10] = 5
+    game15[11] = 8
+    game15[12] = 10
 
-    game15[13] = 2
-    game15[14] = 15
-    game15[15] = 8
-    game15[16] = 9
-end
-
-function fillPhaseZero()
-    for i = 1, 15 do
-        game15[i] = i
-    end
+    game15[13] = 13
+    game15[14] = 7
+    game15[15] = 6
     game15[16] = ""
     missingpart = 16
+end
+
+function fillPhaseZero(tbl)
+    for i = 1, 15 do
+        tbl[i] = i
+    end
+    tbl[16] = ""
+    return tbl
 end
 
 function getParity(number)
@@ -546,7 +599,8 @@ function start()
     game15 = {}
     movelist = {}
     --phase 0
-    fillPhaseZero()
+    game15 = fillPhaseZero(game15)
+    missingpart = 16
 end
 
 function startRandom()
@@ -566,5 +620,8 @@ function startRandom()
     status = "randoming"
 end
 
-
+if normallove then
+else
+    start()
+end
 
