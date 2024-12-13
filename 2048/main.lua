@@ -78,64 +78,55 @@ function addNewNumber()
     while (notinlist(numlist, rnd) == false) do
         rnd = math.random(16)
     end
-    game15[rnd] = 2
+    rnd2 = math.random(2)
+    game15[rnd] = 2 * rnd2
+end
+function filltheline(a, b, c, d)
+    game15[a] = game15[a] + game15[b] + game15[c] + game15[d]
+    game15[b] = 0
+    game15[c] = 0
+    game15[d] = 0
+    if (game15[a] > 0 and notinlist(numlist, a)) then
+        table.insert(numlist, a)
+        table.remove(numlist, getpos(numlist, b))
+        table.remove(numlist, getpos(numlist, c))
+        table.remove(numlist, getpos(numlist, d))
+    end
+
 end
 direction = {
     left = function()
+        filltheline(1, 2, 3, 4)
+        filltheline(5, 6, 7, 8)
+        filltheline(9, 10, 11, 12)
+        filltheline(13, 14, 15, 16)
         addNewNumber()
     end,
 
     right = function()
+        filltheline(4, 3, 2, 1)
+        filltheline(8, 7, 6, 5)
+        filltheline(12, 11, 10, 9)
+        filltheline(16, 15, 14, 13)
         addNewNumber()
     end,
 
     up = function()
-        print("pressed up, status", status, #numlist)
-        --filltheline(game15[1],game15[5],game15[9],game15[13])
-        game15[1] = game15[1] + game15[5] + game15[9] + game15[13]
-        game15[5] = 0
-        game15[9] = 0
-        game15[13] = 0
-        if (game15[1] > 0 and notinlist(numlist, 1)) then
-            table.insert(numlist, 1)
-            table.remove(numlist, getpos(numlist, 5))
-            table.remove(numlist, getpos(numlist, 9))
-            table.remove(numlist, getpos(numlist, 13))
-        end
-        game15[2] = game15[2] + game15[6] + game15[10] + game15[14]
-        game15[6] = 0
-        game15[10] = 0
-        game15[14] = 0
-        if (game15[2] > 0 and notinlist(numlist, 2)) then
-            table.insert(numlist, 2)
-            table.remove(numlist, getpos(numlist, 6))
-            table.remove(numlist, getpos(numlist, 10))
-            table.remove(numlist, getpos(numlist, 14))
-        end
-        game15[3] = game15[3] + game15[7] + game15[11] + game15[15]
-        game15[7] = 0
-        game15[11] = 0
-        game15[15] = 0
-        if (game15[3] > 0 and notinlist(numlist, 3)) then
-            table.insert(numlist, 3)
-            table.remove(numlist, getpos(numlist, 7))
-            table.remove(numlist, getpos(numlist, 11))
-            table.remove(numlist, getpos(numlist, 15))
-        end
-        game15[4] = game15[4] + game15[8] + game15[12] + game15[16]
-        game15[8] = 0
-        game15[12] = 0
-        game15[16] = 0
-        if (game15[4] > 0 and notinlist(numlist, 4)) then
-            table.insert(numlist, 4)
-            table.remove(numlist, getpos(numlist, 8))
-            table.remove(numlist, getpos(numlist, 12))
-            table.remove(numlist, getpos(numlist, 16))
-        end
+
+        filltheline(1, 5, 9, 13)
+        filltheline(2, 6, 10, 14)
+        filltheline(3, 7, 11, 15)
+        filltheline(4, 8, 12, 16)
+
         addNewNumber()
     end,
 
     down = function()
+        filltheline(13, 9, 5, 1)
+        filltheline(14, 10, 6, 2)
+        filltheline(15, 11, 7, 3)
+        filltheline(16, 12, 8, 4)
+
         addNewNumber()
     end
 }
