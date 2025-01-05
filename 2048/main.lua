@@ -74,24 +74,207 @@ function getpos(table, item)
     return 0
 end
 function addNewNumber()
-    rnd = math.random(16)
-    while (notinlist(numlist, rnd) == false) do
+    if (#numlist <= 16) then
+
+
         rnd = math.random(16)
+        while (notinlist(numlist, rnd) == false) do
+            rnd = math.random(16)
+        end
+        rnd2 = math.random(2)
+        game15[rnd] = 2 * rnd2
     end
-    rnd2 = math.random(2)
-    game15[rnd] = 2 * rnd2
 end
+
 function filltheline(a, b, c, d)
-    game15[a] = game15[a] + game15[b] + game15[c] + game15[d]
-    game15[b] = 0
-    game15[c] = 0
-    game15[d] = 0
+
+    --calculate position a
+    if (game15[a] > 0) then
+        if (game15[b] > 0) then
+            if (game15[a] == game15[b]) then
+                game15[a] = game15[a] + game15[b]
+                game15[b] = 0
+                table.remove(numlist, getpos(numlist, b))
+            end
+        else
+            if (game15[b] == 0) then
+                if (game15[c] > 0) then
+                    if (game15[a] == game15[c]) then
+                        game15[a] = game15[a] + game15[c]
+                        game15[c] = 0
+                        table.remove(numlist, getpos(numlist, c))
+                    end
+                else
+                    if (game15[c] == 0) then
+                        if (game15[d] > 0) then
+                            if (game15[a] == game15[d]) then
+                                game15[a] = game15[a] + game15[d]
+                                game15[d] = 0
+                                table.remove(numlist, getpos(numlist, d))
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    else
+        if (game15[a] == 0) then
+            if (game15[b] > 0) then
+                if (game15[c] > 0) then
+                    if (game15[b] == game15[c]) then
+                        game15[a] = game15[b] + game15[c]
+                        game15[b] = 0
+                        game15[c] = 0
+                        table.remove(numlist, getpos(numlist, b))
+                        table.remove(numlist, getpos(numlist, c))
+                    else
+                        game15[a] = game15[b]
+                        game15[b] = 0
+                        table.remove(numlist, getpos(numlist, b))
+                    end
+                else
+                    if (game15[c] == 0) then
+                        if (game15[d] > 0) then
+                            if (game15[b] == game15[d]) then
+                                game15[a] = game15[b] + game15[d]
+                                game15[b] = 0
+                                game15[d] = 0
+                                table.remove(numlist, getpos(numlist, b))
+                                table.remove(numlist, getpos(numlist, d))
+                            else
+                                game15[a] = game15[b]
+                                game15[b] = 0
+                                table.remove(numlist, getpos(numlist, b))
+                            end
+                        else
+                            if (game15[d] == 0) then
+                                game15[a] = game15[b]
+                                game15[b] = 0
+                                table.remove(numlist, getpos(numlist, b))
+                            end
+                        end
+                    end
+                end
+            else
+                if (game15[b] == 0) then
+                    if (game15[c] > 0) then
+                        if (game15[d] > 0) then
+                            if (game15[c] == game15[d]) then
+                                game15[a] = game15[c] + game15[d]
+                                game15[c] = 0
+                                game15[d] = 0
+                                table.remove(numlist, getpos(numlist, c))
+                                table.remove(numlist, getpos(numlist, d))
+                            else
+                                game15[a] = game15[c]
+                                game15[c] = 0
+                                table.remove(numlist, getpos(numlist, c))
+                            end
+                        else
+                            if (game15[d] == 0) then
+                                game15[a] = game15[c]
+                                game15[c] = 0
+                                table.remove(numlist, getpos(numlist, c))
+                            end
+                        end
+                    else
+                        if (game15[c] == 0) then
+                            if (game15[d] > 0) then
+                                game15[a] = game15[d]
+                                game15[d] = 0
+                                table.remove(numlist, getpos(numlist, d))
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+    end
     if (game15[a] > 0 and notinlist(numlist, a)) then
         table.insert(numlist, a)
-        table.remove(numlist, getpos(numlist, b))
-        table.remove(numlist, getpos(numlist, c))
-        table.remove(numlist, getpos(numlist, d))
     end
+    --calculate position b
+    if (game15[b] > 0) then
+        if (game15[c] > 0) then
+            if (game15[b] == game15[c]) then
+                game15[b] = game15[b] + game15[c]
+                game15[c] = 0
+                table.remove(numlist, getpos(numlist, c))
+            end
+        else
+            if (game15[c] == 0) then
+                if (game15[d] > 0) then
+                    if (game15[b] == game15[d]) then
+                        game15[b] = game15[b] + game15[d]
+                        game15[d] = 0
+                        table.remove(numlist, getpos(numlist, d))
+                    end
+                end
+            end
+        end
+    else
+        if (game15[b] == 0) then
+            if (game15[c] > 0) then
+                if (game15[d] > 0) then
+                    if (game15[c] == game15[d]) then
+                        game15[b] = game15[c] + game15[d]
+                        game15[c] = 0
+                        game15[d] = 0
+                        table.remove(numlist, getpos(numlist, c))
+                        table.remove(numlist, getpos(numlist, d))
+                    else
+                        game15[b] = game15[c]
+                        game15[c] = 0
+                        table.remove(numlist, getpos(numlist, c))
+                    end
+                else
+                    if (game15[d] == 0) then
+                        game15[b] = game15[c]
+                        game15[c] = 0
+                        table.remove(numlist, getpos(numlist, c))
+                    end
+                end
+            else
+                if (game15[c] == 0) then
+                    if (game15[d] > 0) then
+                        game15[b] = game15[d]
+                        game15[d] = 0
+                        table.remove(numlist, getpos(numlist, d))
+                    end
+                end
+            end
+        end
+    end
+    if (game15[b] > 0 and notinlist(numlist, b)) then
+        table.insert(numlist, b)
+    end
+    --calculate position c
+    if (game15[c] > 0) then
+        if (game15[d] > 0) then
+            if (game15[c] == game15[d]) then
+                game15[c] = game15[c] + game15[d]
+                game15[d] = 0
+                table.remove(numlist, getpos(numlist, d))
+            end
+        else
+            if (game15[d] == 0) then
+
+            end
+        end
+    else
+        if (game15[c] == 0) then
+            if (game15[d] > 0) then
+                game15[c] = game15[d]
+                game15[d] = 0
+                table.remove(numlist, getpos(numlist, d))
+            end
+        end
+    end
+    if (game15[c] > 0 and notinlist(numlist, c)) then
+        table.insert(numlist, c)
+    end
+    --calculate position d
 
 end
 direction = {
@@ -117,7 +300,7 @@ direction = {
         filltheline(2, 6, 10, 14)
         filltheline(3, 7, 11, 15)
         filltheline(4, 8, 12, 16)
-
+        print(#numlist)
         addNewNumber()
     end,
 
