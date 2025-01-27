@@ -5,20 +5,18 @@ width = 102
 height = 60
 love.window.setTitle("snake")
 
-normallove = false
+is_compy = true
 status = "running"
 
 function love.load()
     --start/restart game
-    if (G == nil) then
+    if G == nil then
         G = love.graphics
         love.window.setMode(1024, 600)
         midx, midy = G.getDimensions()
-        normallove = true
-    else
-        normallove = false
-    end
+        is_compy = false
 
+    end
     start()
 end
 
@@ -179,6 +177,7 @@ end
 
 function start()
     math.randomseed(os.time())
+    print("start")
     if (G ~= nil) then
         midx, midy = G.getDimensions()
     end
@@ -227,6 +226,6 @@ function get_free_position()
     end
 end
 
-if (normallove == false) then
+if (is_compy ) then
     start()
 end
