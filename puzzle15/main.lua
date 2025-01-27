@@ -1,12 +1,11 @@
+is_compy=true
 function love.load()
     -- initialize random number generator
     if (G == nil) then
         G = love.graphics
         love.window.setMode(1024, 600)
         love.window.setTitle("puzzle15")
-        normallove = true
-    else
-        normallove = false
+        is_compy = false
     end
     start()
 end
@@ -620,8 +619,7 @@ function startRandom()
     status = "randoming"
 end
 
-if normallove then
-else
+if is_compy then
     start()
 end
 
